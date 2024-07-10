@@ -11,11 +11,12 @@ pub struct IndexerConfig {
     pub eth_rpc_url: String,
     #[serde(default = "default_db_url")]
     pub db_url: String,
+    pub eth_ws_url: String,
     pub checkpoints_path: String,
     pub concurrency: u64,
     pub bridge_genesis_checkpoint: u64,
     pub eth_sui_bridge_contract_address: String,
-    pub start_block: u64,
+    pub bridge_genesis_block: u64,
     pub metric_url: String,
     pub metric_port: u16,
     pub sui_rpc_url: Option<String>,

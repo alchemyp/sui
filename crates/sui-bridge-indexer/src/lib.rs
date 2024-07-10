@@ -8,7 +8,6 @@ use sui_types::base_types::{SuiAddress, TransactionDigest};
 
 pub mod config;
 pub mod eth_worker;
-pub mod latest_eth_syncer;
 pub mod metrics;
 pub mod models;
 pub mod postgres_manager;

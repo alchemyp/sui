@@ -3,6 +3,8 @@
 
 use anyhow::Result;
 use clap::*;
+use ethers::providers::Provider;
+use ethers::providers::Ws;
 use mysten_metrics::spawn_logged_monitored_task;
 use mysten_metrics::start_prometheus_server;
 use std::collections::HashSet;
@@ -73,7 +75,6 @@ async fn main() -> Result<()> {
     // unwrap safe: db_url must be set in `load_config` above
     let db_url = config.db_url.clone();
 
-    // TODO: retry_with_max_elapsed_time
     let eth_worker = EthBridgeWorker::new(
         get_connection_pool(db_url.clone()),
         bridge_metrics.clone(),
@@ -84,19 +85,32 @@ async fn main() -> Result<()> {
     let eth_client = Arc::new(
         EthClient::<ethers::providers::Http>::new(
             &config.eth_rpc_url,
-            HashSet::from_iter(vec![eth_worker.bridge_address()]),
+            HashSet::from_iter(vec![eth_worker.bridge_address]),
             bridge_metrics.clone(),
         )
         .await?,
     );
 
-    let unfinalized_handle = eth_worker
-        .start_indexing_unfinalized_events(eth_client.clone())
-        .await?;
-    let finalized_handle = eth_worker
-        .start_indexing_finalized_events(eth_client.clone())
-        .await?;
-    let handles = vec![unfinalized_handle, finalized_handle];
+    let eth_ws_client = Arc::new(Provider::<Ws>::connect(config.eth_ws_url).await.unwrap());
+
+    let eth_worker_clone = eth_worker.clone();
+
+    let subscribe_latest_handle = spawn_logged_monitored_task!(
+        eth_worker_clone.subscribe_to_latest_events(eth_ws_client),
+        "finalized indexer handler"
+    );
+
+    let eth_worker_clone = eth_worker.clone();
+    let eth_client_clone = eth_client.clone();
+    let subscribe_finalized_handle = spawn_logged_monitored_task!(
+        eth_worker_clone.subscribe_to_finalized_events(eth_client_clone)
+    );
+
+    let eth_worker_clone = eth_worker.clone();
+    let eth_client_clone = eth_client.clone();
+    let sync_handle = spawn_logged_monitored_task!(
+        eth_worker_clone.sync_events(eth_client_clone, config.bridge_genesis_block)
+    );
 
     if let Some(sui_rpc_url) = config.sui_rpc_url.clone() {
         start_processing_sui_checkpoints_by_querying_txns(
@@ -112,7 +126,13 @@ async fn main() -> Result<()> {
             .start(&config_clone, indexer_meterics, ingestion_metrics)
             .await?;
     }
-    // We are not waiting for the sui tasks to finish here, which is ok.
+
+    let handles = vec![
+        subscribe_latest_handle,
+        subscribe_finalized_handle,
+        sync_handle,
+    ];
+
     futures::future::join_all(handles).await;
 
     Ok(())
