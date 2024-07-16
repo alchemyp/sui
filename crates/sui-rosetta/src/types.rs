@@ -433,6 +433,7 @@ pub enum OperationType {
     StakePrinciple,
     // sui-rosetta supported operation type
     PaySui,
+    PayCoin,
     Stake,
     WithdrawStake,
     // All other Sui transaction types, readonly
@@ -891,6 +892,12 @@ pub enum InternalOperation {
         recipients: Vec<SuiAddress>,
         amounts: Vec<u64>,
     },
+    PayCoin {
+        sender: SuiAddress,
+        recipients: Vec<SuiAddress>,
+        amounts: Vec<u64>,
+        currency: Currency,
+    },
     Stake {
         sender: SuiAddress,
         validator: SuiAddress,
@@ -907,6 +914,7 @@ impl InternalOperation {
     pub fn sender(&self) -> SuiAddress {
         match self {
             InternalOperation::PaySui { sender, .. }
+            | InternalOperation::PayCoin { sender, .. }
             | InternalOperation::Stake { sender, .. }
             | InternalOperation::WithdrawStake { sender, .. } => *sender,
         }
@@ -921,6 +929,15 @@ impl InternalOperation {
             } => {
                 let mut builder = ProgrammableTransactionBuilder::new();
                 builder.pay_sui(recipients, amounts)?;
+                builder.finish()
+            }
+            Self::PayCoin {
+                recipients,
+                amounts,
+                ..
+            } => {
+                let mut builder = ProgrammableTransactionBuilder::new();
+                builder.pay(metadata.coins.clone(), recipients, amounts)?;
                 builder.finish()
             }
             InternalOperation::Stake {
