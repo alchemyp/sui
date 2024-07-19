@@ -14,8 +14,8 @@ use crate::{
         ast::{self as E, Address, Fields, ModuleIdent, ModuleIdent_, TargetKind},
         byte_string, hex_string,
         path_expander::{
-            access_result, Access, LegacyPathExpander, ModuleAccessResult, Move2024PathExpander,
-            PathExpander,
+            access_result, Access, ErrorSuggestionPosition, LegacyPathExpander, ModuleAccessResult,
+            Move2024PathExpander, PathExpander,
         },
         translate::known_attributes::{DiagnosticAttribute, KnownAttribute},
     },
@@ -219,6 +219,18 @@ impl<'env, 'map> Context<'env, 'map> {
             .as_mut()
             .unwrap()
             .name_access_chain_to_module_ident(inner_context, chain)
+    }
+
+    fn error_ide_autocomplete_suggestion(&mut self, position: &ErrorSuggestionPosition, loc: Loc) {
+        let Context {
+            path_expander,
+            defn_context: inner_context,
+            ..
+        } = self;
+        path_expander
+            .as_mut()
+            .unwrap()
+            .error_ide_autocomplete_suggestion(inner_context, position, loc)
     }
 
     pub fn spec_deprecated(&mut self, loc: Loc, is_error: bool) {
@@ -2328,7 +2340,11 @@ fn type_(context: &mut Context, sp!(loc, pt_): P::Type) -> E::Type {
             let result = type_(context, *result);
             ET::Fun(args, Box::new(result))
         }
-        PT::UnresolvedError => ET::UnresolvedError,
+        PT::UnresolvedError => {
+            // Treat an unresolved error as a leading access
+            context.error_ide_autocomplete_suggestion(&ErrorSuggestionPosition::Type, loc);
+            ET::UnresolvedError
+        }
     };
     sp(loc, t_)
 }

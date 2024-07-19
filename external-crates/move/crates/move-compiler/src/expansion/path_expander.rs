@@ -50,9 +50,13 @@ pub enum Access {
     Module, // Just used for errors
 }
 
-// This trait describes the commands available to handle alias scopes and expanding name access
-// chains. This is used to model both legacy and modern path expansion.
+/// A position for a suggestion, in the case of, e.g., an `UnresolvedType` in the parser AST.
+pub enum ErrorSuggestionPosition {
+    Type,
+}
 
+/// This trait describes the commands available to handle alias scopes and expanding name access
+/// chains. This is used to model both legacy and modern path expansion.
 pub trait PathExpander {
     // Push a new innermost alias scope
     fn push_alias_scope(
@@ -86,6 +90,13 @@ pub trait PathExpander {
         context: &mut DefnContext,
         name_chain: P::NameAccessChain,
     ) -> Option<E::ModuleIdent>;
+
+    fn error_ide_autocomplete_suggestion(
+        &mut self,
+        context: &mut DefnContext,
+        position: &ErrorSuggestionPosition,
+        loc: Loc,
+    );
 }
 
 pub fn make_access_result(
@@ -751,6 +762,19 @@ impl PathExpander for Move2024PathExpander {
             }
         }
     }
+
+    fn error_ide_autocomplete_suggestion(
+        &mut self,
+        context: &mut DefnContext,
+        position: &ErrorSuggestionPosition,
+        loc: Loc,
+    ) {
+        match position {
+            ErrorSuggestionPosition::Type => {
+                self.ide_autocomplete_suggestion(context, &NameSpace::LeadingAccess, loc);
+            }
+        }
+    }
 }
 
 impl AccessChainNameResult {
@@ -1229,6 +1253,20 @@ impl PathExpander for LegacyPathExpander {
                         None
                     }
                 }
+            }
+        }
+    }
+
+    fn error_ide_autocomplete_suggestion(
+        &mut self,
+        context: &mut DefnContext,
+        position: &ErrorSuggestionPosition,
+        loc: Loc,
+    ) {
+        match position {
+            ErrorSuggestionPosition::Type => {
+                self.ide_autocomplete_suggestion(context, LegacyPositionKind::Address, loc);
+                self.ide_autocomplete_suggestion(context, LegacyPositionKind::Member, loc);
             }
         }
     }
