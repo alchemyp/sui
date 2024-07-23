@@ -329,7 +329,7 @@ pub(crate) fn subqueries(filter: &TransactionBlockFilter, tx_bounds: TxBounds) -
     Some(subquery)
 }
 
-pub(crate) fn select_tx(sender: Option<SuiAddress>, bound: TxBounds, from: &str) -> RawQuery {
+fn select_tx(sender: Option<SuiAddress>, bound: TxBounds, from: &str) -> RawQuery {
     let mut query = filter!(
         query!(format!("SELECT tx_sequence_number FROM {}", from)),
         format!(
@@ -349,18 +349,14 @@ pub(crate) fn select_tx(sender: Option<SuiAddress>, bound: TxBounds, from: &str)
     query
 }
 
-pub(crate) fn select_pkg(
-    pkg: &SuiAddress,
-    sender: Option<SuiAddress>,
-    bound: TxBounds,
-) -> RawQuery {
+fn select_pkg(pkg: &SuiAddress, sender: Option<SuiAddress>, bound: TxBounds) -> RawQuery {
     filter!(
         select_tx(sender, bound, "tx_calls_pkg"),
         format!("package = {}", bytea_literal(pkg.as_slice()))
     )
 }
 
-pub(crate) fn select_mod(
+fn select_mod(
     pkg: &SuiAddress,
     mod_: String,
     sender: Option<SuiAddress>,
@@ -376,7 +372,7 @@ pub(crate) fn select_mod(
     )
 }
 
-pub(crate) fn select_fun(
+fn select_fun(
     pkg: &SuiAddress,
     mod_: String,
     fun: String,
@@ -395,9 +391,12 @@ pub(crate) fn select_fun(
 }
 
 /// Returns a RawQuery that selects transactions of a specific kind. If SystemTX is specified, we
-/// ignore the `sender`. If ProgrammableTX is specified, we filter against the `tx_kinds` table if no
-/// `sender` is provided; otherwise, we just query the `tx_senders` table.
-pub(crate) fn select_kind(
+/// ignore the `sender`. If ProgrammableTX is specified, we filter against the `tx_kinds` table if
+/// no `sender` is provided; otherwise, we just query the `tx_senders` table. Other combinations, in
+/// particular when kind is SystemTx and sender is specified and not 0x0, are inconsistent and will
+/// not produce any results. These inconsistent cases are expected to be checked for before this is
+/// called.
+fn select_kind(
     kind: TransactionBlockKindInput,
     sender: Option<SuiAddress>,
     bound: TxBounds,
@@ -414,44 +413,32 @@ pub(crate) fn select_kind(
     }
 }
 
-pub(crate) fn select_sender(sender: &SuiAddress, bound: TxBounds) -> RawQuery {
+fn select_sender(sender: &SuiAddress, bound: TxBounds) -> RawQuery {
     select_tx(Some(*sender), bound, "tx_senders")
 }
 
-pub(crate) fn select_recipient(
-    recv: &SuiAddress,
-    sender: Option<SuiAddress>,
-    bound: TxBounds,
-) -> RawQuery {
+fn select_recipient(recv: &SuiAddress, sender: Option<SuiAddress>, bound: TxBounds) -> RawQuery {
     filter!(
         select_tx(sender, bound, "tx_recipients"),
         format!("recipient = {}", bytea_literal(recv.as_slice()))
     )
 }
 
-pub(crate) fn select_input(
-    input: &SuiAddress,
-    sender: Option<SuiAddress>,
-    bound: TxBounds,
-) -> RawQuery {
+fn select_input(input: &SuiAddress, sender: Option<SuiAddress>, bound: TxBounds) -> RawQuery {
     filter!(
         select_tx(sender, bound, "tx_input_objects"),
         format!("object_id = {}", bytea_literal(input.as_slice()))
     )
 }
 
-pub(crate) fn select_changed(
-    changed: &SuiAddress,
-    sender: Option<SuiAddress>,
-    bound: TxBounds,
-) -> RawQuery {
+fn select_changed(changed: &SuiAddress, sender: Option<SuiAddress>, bound: TxBounds) -> RawQuery {
     filter!(
         select_tx(sender, bound, "tx_changed_objects"),
         format!("object_id = {}", bytea_literal(changed.as_slice()))
     )
 }
 
-pub(crate) fn select_ids(ids: &Vec<Digest>, bound: TxBounds) -> RawQuery {
+fn select_ids(ids: &Vec<Digest>, bound: TxBounds) -> RawQuery {
     let query = select_tx(None, bound, "tx_digests");
     if ids.is_empty() {
         filter!(query, "1=0")
