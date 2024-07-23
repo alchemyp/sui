@@ -387,11 +387,7 @@ impl Checkpointed for Cursor {
     }
 }
 
-impl ScanLimited for Cursor {
-    fn is_scan_limited(&self) -> bool {
-        false
-    }
-}
+impl ScanLimited for Cursor {}
 
 #[async_trait::async_trait]
 impl Loader<SeqNumKey> for Db {

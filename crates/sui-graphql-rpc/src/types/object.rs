@@ -1097,11 +1097,7 @@ impl Checkpointed for Cursor {
     }
 }
 
-impl ScanLimited for Cursor {
-    fn is_scan_limited(&self) -> bool {
-        false
-    }
-}
+impl ScanLimited for Cursor {}
 
 impl RawPaginated<Cursor> for StoredHistoryObject {
     fn filter_ge(cursor: &Cursor, query: RawQuery) -> RawQuery {

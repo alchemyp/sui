@@ -102,9 +102,12 @@ pub(crate) trait Target<C: CursorType> {
 }
 
 /// A trait indicating whether a cursor was derived from a `scan_limit` or not. If the latter, then
-/// it came from either tip of the paginated response.
+/// it came from either tip of the paginated response, and should appear in the current result set.
+/// Otherwise, a cursor that stems from a `scan_limit` is not expected to be in the result set.
 pub(crate) trait ScanLimited {
-    fn is_scan_limited(&self) -> bool;
+    fn is_scan_limited(&self) -> bool {
+        false
+    }
 }
 
 impl<C> JsonCursor<C> {
@@ -406,7 +409,7 @@ impl<C: CursorType + ScanLimited + Eq + Clone + Send + Sync + 'static> Page<C> {
                     return (false, false, vec![].into_iter());
                 }
 
-                // From here onwards, we know that the results are non-empty and if a cursor was
+                // From here onwards, we know that the results are non-empty. If a cursor was
                 // supplied on the end the page is being drawn from, it was found in the results
                 // (implying a page follows in that direction).
                 (after, Some(f), Some(l), before, End::Front) => {
