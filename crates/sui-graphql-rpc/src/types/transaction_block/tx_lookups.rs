@@ -260,12 +260,12 @@ impl TransactionBlockFilter {
     }
 }
 
-/// Determines the maximum value in an arbitrary number of Option<u64>.
+/// Determines the maximum value in an arbitrary number of Option<impl Ord>.
 fn max_option<T: Ord>(xs: impl IntoIterator<Item = Option<T>>) -> Option<T> {
     xs.into_iter().flatten().max()
 }
 
-/// Determines the minimum value in an arbitrary number of Option<u64>.
+/// Determines the minimum value in an arbitrary number of Option<impl Ord>.
 fn min_option<T: Ord>(xs: impl IntoIterator<Item = Option<T>>) -> Option<T> {
     xs.into_iter().flatten().min()
 }
@@ -331,7 +331,7 @@ pub(crate) fn subqueries(filter: &TransactionBlockFilter, tx_bounds: TxBounds) -
 
 fn select_tx(sender: Option<SuiAddress>, bound: TxBounds, from: &str) -> RawQuery {
     let mut query = filter!(
-        query!(format!("SELECT tx_sequence_number FROM {}", from)),
+        query!(format!("SELECT tx_sequence_number FROM {from}")),
         format!(
             "{} <= tx_sequence_number AND tx_sequence_number <= {}",
             bound.scan_lo(),
