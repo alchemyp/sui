@@ -449,7 +449,24 @@ impl SuiCommand {
                 package_path,
                 build_config,
                 cmd,
-            } => execute_move_command(package_path.as_deref(), build_config, cmd),
+            } => {
+                let cmd = match cmd {
+                    sui_move::Command::Build(mut build) if build.dump_bytecode_as_base64 => {
+                        let config = sui_config_dir()?.join(SUI_CLIENT_CONFIG); // XXX no config to this SuiCommand::Move
+                        prompt_if_no_config(&config, false).await?;
+                        let context = WalletContext::new(&config, None, None)?;
+                        let client = context.get_client().await?;
+                        let chain_id = client.read_api().get_chain_identifier().await.ok();
+                        // let mut new_build = build.clone();
+                        // new_build.chain_id = chain_id;
+                        // sui_move::Command::Build(new_build)
+                        build.chain_id = chain_id;
+                        sui_move::Command::Build(build)
+                    }
+                    _ => cmd,
+                };
+                execute_move_command(package_path.as_deref(), build_config, cmd)
+            }
             SuiCommand::BridgeInitialize {
                 network_config,
                 client_config,
