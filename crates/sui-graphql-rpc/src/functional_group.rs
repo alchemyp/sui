@@ -32,6 +32,9 @@ pub(crate) enum FunctionalGroup {
     /// Aspects that affect the running of the system that are managed by the
     /// validators either directly, or through system transactions.
     SystemState,
+
+    /// DotMove Service
+    DotMoveService,
 }
 
 impl FunctionalGroup {
@@ -51,6 +54,7 @@ impl FunctionalGroup {
             G::NameService,
             G::Subscriptions,
             G::SystemState,
+            G::DotMoveService,
         ];
         ALL
     }
@@ -96,6 +100,7 @@ fn functional_groups() -> &'static BTreeMap<(&'static str, &'static str), Functi
             (("Query", "networkMetrics"), G::Analytics),
             (("Query", "protocolConfig"), G::SystemState),
             (("Query", "resolveSuinsAddress"), G::NameService),
+            (("Query", "packageByName"), G::DotMoveService),
             (("Subscription", "events"), G::Subscriptions),
             (("Subscription", "transactions"), G::Subscriptions),
             (("SystemStateSummary", "safeMode"), G::SystemState),

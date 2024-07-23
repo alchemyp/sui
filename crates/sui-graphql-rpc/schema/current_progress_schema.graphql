@@ -1255,6 +1255,10 @@ enum Feature {
 	validators either directly, or through system transactions.
 	"""
 	SYSTEM_STATE
+	"""
+	DotMove Service
+	"""
+	DOT_MOVE_SERVICE
 }
 
 
@@ -2831,10 +2835,6 @@ type Pure {
 }
 
 type Query {
-	"""
-	First four bytes of the network's genesis checkpoint digest (uniquely identifies the
-	network).
-	"""
 	chainIdentifier: String!
 	"""
 	Range of checkpoints that the RPC has data available for (for data
@@ -2959,6 +2959,10 @@ type Query {
 	Resolves a SuiNS `domain` name to an address, if it has been bound.
 	"""
 	resolveSuinsAddress(domain: String!): Address
+	"""
+	Fetch a package by its name (using dot move service)
+	"""
+	packageByName(name: String!): MovePackage
 	"""
 	The coin metadata associated with the given coin type.
 	"""

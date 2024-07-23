@@ -1,13 +1,15 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::functional_group::FunctionalGroup;
 use crate::types::big_int::BigInt;
+use crate::types::dot_move::config::ResolutionType;
+use crate::{functional_group::FunctionalGroup, types::dot_move::config::DotMoveConfig};
 use async_graphql::*;
 use fastcrypto_zkp::bn254::zk_login_api::ZkLoginEnv;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeSet, fmt::Display, time::Duration};
 use sui_json_rpc::name_service::NameServiceConfig;
+use sui_types::base_types::{ObjectID, SuiAddress};
 // TODO: calculate proper cost limits
 
 /// These values are set to support TS SDK shim layer queries for json-rpc compatibility.
@@ -99,6 +101,9 @@ pub struct ServiceConfig {
 
     #[serde(default)]
     pub(crate) zklogin: ZkLoginConfig,
+
+    #[serde(default)]
+    pub(crate) dot_move: DotMoveConfig,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
@@ -394,6 +399,14 @@ impl ConnectionConfig {
     pub fn server_address(&self) -> String {
         format!("{}:{}", self.host, self.port)
     }
+
+    pub fn host(&self) -> String {
+        self.host.clone()
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port
+    }
 }
 
 impl ServiceConfig {
@@ -408,6 +421,29 @@ impl ServiceConfig {
                 env: ZkLoginEnv::Test,
             },
             ..Default::default()
+        }
+    }
+
+    pub fn dot_move_test_defaults(
+        external: bool,
+        endpoint: Option<String>,
+        pkg_address: Option<SuiAddress>,
+        object_id: Option<ObjectID>,
+        page_limit: Option<u16>,
+    ) -> Self {
+        Self {
+            dot_move: DotMoveConfig {
+                resolution_type: if external {
+                    ResolutionType::External
+                } else {
+                    ResolutionType::Internal
+                },
+                mainnet_api_url: endpoint,
+                package_address: pkg_address.unwrap_or_default(),
+                registry_id: object_id.unwrap_or(ObjectID::random()),
+                page_limit: page_limit.unwrap_or(50),
+            },
+            ..Self::test_defaults()
         }
     }
 }

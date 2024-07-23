@@ -13,6 +13,7 @@ use sui_types::digests::ChainIdentifier as NativeChainIdentifier;
 use sui_types::transaction::{TransactionData, TransactionKind};
 use sui_types::{gas_coin::GAS, transaction::TransactionDataAPI, TypeTag};
 
+use super::dot_move::named_move_package::NamedMovePackage;
 use super::move_package::{self, MovePackage};
 use super::suins_registration::NameService;
 use super::{
@@ -500,6 +501,19 @@ impl Query {
                 address: a.into(),
                 checkpoint_viewed_at: checkpoint,
             }))
+    }
+
+    /// Fetch a package by its name (using dot move service)
+    async fn package_by_name(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> Result<Option<MovePackage>> {
+        let Watermark { checkpoint, .. } = *ctx.data()?;
+
+        NamedMovePackage::query(ctx, &name, checkpoint)
+            .await
+            .extend()
     }
 
     /// The coin metadata associated with the given coin type.
