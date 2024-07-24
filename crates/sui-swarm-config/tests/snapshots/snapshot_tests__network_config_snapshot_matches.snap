@@ -68,8 +68,8 @@ validator_configs:
           connection_buffer_size: 33554432
           excessive_message_size: 16777216
           message_size_limit: 67108864
-        sync_last_proposed_block_timeout:
-          secs: 0
+        sync_last_known_own_block_timeout:
+          secs: 5
           nanos: 0
     enable-index-processing: true
     jsonrpc-server-type: ~
@@ -233,8 +233,8 @@ validator_configs:
           connection_buffer_size: 33554432
           excessive_message_size: 16777216
           message_size_limit: 67108864
-        sync_last_proposed_block_timeout:
-          secs: 0
+        sync_last_known_own_block_timeout:
+          secs: 5
           nanos: 0
     enable-index-processing: true
     jsonrpc-server-type: ~
@@ -398,8 +398,8 @@ validator_configs:
           connection_buffer_size: 33554432
           excessive_message_size: 16777216
           message_size_limit: 67108864
-        sync_last_proposed_block_timeout:
-          secs: 0
+        sync_last_known_own_block_timeout:
+          secs: 5
           nanos: 0
     enable-index-processing: true
     jsonrpc-server-type: ~
@@ -563,8 +563,8 @@ validator_configs:
           connection_buffer_size: 33554432
           excessive_message_size: 16777216
           message_size_limit: 67108864
-        sync_last_proposed_block_timeout:
-          secs: 0
+        sync_last_known_own_block_timeout:
+          secs: 5
           nanos: 0
     enable-index-processing: true
     jsonrpc-server-type: ~
@@ -728,8 +728,8 @@ validator_configs:
           connection_buffer_size: 33554432
           excessive_message_size: 16777216
           message_size_limit: 67108864
-        sync_last_proposed_block_timeout:
-          secs: 0
+        sync_last_known_own_block_timeout:
+          secs: 5
           nanos: 0
     enable-index-processing: true
     jsonrpc-server-type: ~
@@ -893,8 +893,8 @@ validator_configs:
           connection_buffer_size: 33554432
           excessive_message_size: 16777216
           message_size_limit: 67108864
-        sync_last_proposed_block_timeout:
-          secs: 0
+        sync_last_known_own_block_timeout:
+          secs: 5
           nanos: 0
     enable-index-processing: true
     jsonrpc-server-type: ~
@@ -1058,8 +1058,8 @@ validator_configs:
           connection_buffer_size: 33554432
           excessive_message_size: 16777216
           message_size_limit: 67108864
-        sync_last_proposed_block_timeout:
-          secs: 0
+        sync_last_known_own_block_timeout:
+          secs: 5
           nanos: 0
     enable-index-processing: true
     jsonrpc-server-type: ~
@@ -1165,3 +1165,4 @@ account_keys:
   - mfPjCoE6SX0Sl84MnmNS/LS+tfPpkn7I8tziuk2g0WM=
   - 5RWlYF22jS9i76zLl8jP2D3D8GC5ht+IP1dWUBGZxi8=
 genesis: "[fake genesis]"
+
